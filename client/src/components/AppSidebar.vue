@@ -27,7 +27,7 @@
       </RouterLink>
     </nav>
 
-    <!-- Footer: language switcher + profile menu -->
+    <!-- Footer: language switcher + profile menu + dark mode toggle -->
     <div class="sidebar-footer">
       <div class="footer-controls" :class="{ 'footer-controls--collapsed': collapsed }">
         <LanguageSwitcher v-if="!collapsed" class="footer-lang" />
@@ -36,6 +36,16 @@
           @show-profile-details="$emit('show-profile-details')"
           @show-tasks="$emit('show-tasks')"
         />
+        <!-- Dark mode toggle -->
+        <button
+          class="dark-toggle"
+          :class="{ 'dark-toggle--collapsed': collapsed }"
+          :title="isDark ? 'Switch to light mode' : 'Toggle dark mode'"
+          @click="$emit('toggle-dark')"
+        >
+          <span class="dark-toggle-icon" v-html="isDark ? icons.sun : icons.moon"></span>
+          <span v-if="!collapsed" class="dark-toggle-label">{{ isDark ? 'Light mode' : 'Dark mode' }}</span>
+        </button>
       </div>
     </div>
   </aside>
@@ -45,12 +55,17 @@
 import ProfileMenu from './ProfileMenu.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
-defineProps({ collapsed: { type: Boolean, default: false } })
-defineEmits(['toggle', 'show-profile-details', 'show-tasks'])
+defineProps({
+  collapsed: { type: Boolean, default: false },
+  isDark:    { type: Boolean, default: false },
+})
+defineEmits(['toggle', 'show-profile-details', 'show-tasks', 'toggle-dark'])
 
 const icons = {
   chevronLeft:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
   chevronRight: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+  sun:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  moon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
   home:      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
   inventory: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
   orders:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
@@ -285,5 +300,68 @@ const navItems = [
   top: auto;
   left: 0;
   right: auto;
+}
+
+/* ── Dark mode toggle ── */
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+.dark-toggle:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-text-strong);
+}
+
+.dark-toggle-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dark-toggle-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Collapsed: center the icon and show a CSS tooltip */
+.dark-toggle--collapsed {
+  justify-content: center;
+  padding: 8px 6px;
+  position: relative;
+}
+.dark-toggle--collapsed::after {
+  content: 'Toggle dark mode';
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.dark-toggle--collapsed:hover::after {
+  opacity: 1;
 }
 </style>
