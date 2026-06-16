@@ -11,6 +11,10 @@
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('inventory.stockLevels') }} ({{ filteredItems.length }} {{ t('inventory.skus') }})</h3>
+          <button class="export-btn" @click="exportCSV">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
           <div class="search-box">
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
@@ -201,6 +205,29 @@ export default {
       showItemModal.value = true
     }
 
+    const exportCSV = () => {
+      const headers = ['SKU', 'Item Name', 'Category', 'Quantity On Hand', 'Reorder Point', 'Unit Cost', 'Total Value', 'Location', 'Status']
+      const rows = filteredItems.value.map(item => [
+        item.sku,
+        item.name,
+        item.category,
+        item.quantity_on_hand,
+        item.reorder_point,
+        item.unit_cost.toFixed(2),
+        (item.quantity_on_hand * item.unit_cost).toFixed(2),
+        item.location,
+        getStockStatusKey(item)
+      ])
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'inventory.csv'
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+
     onMounted(loadInventory)
 
     return {
@@ -216,6 +243,7 @@ export default {
       showItemModal,
       selectedItem,
       showItemDetail,
+      exportCSV,
       currencySymbol,
       translateProductName,
       translateWarehouse
@@ -310,6 +338,26 @@ export default {
 .clear-search:hover {
   background: #e2e8f0;
   color: #64748b;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.export-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 .clear-search svg {
