@@ -2,9 +2,11 @@
   <div class="app-shell" :style="{ '--sidebar-width': sidebarCollapsed ? '56px' : '240px' }">
     <AppSidebar
       :collapsed="sidebarCollapsed"
+      :is-dark="isDark"
       @toggle="sidebarCollapsed = !sidebarCollapsed"
       @show-profile-details="showProfileDetails = true"
       @show-tasks="showTasks = true"
+      @toggle-dark="toggleDark"
     />
     <div class="app-body">
       <FilterBar />
@@ -48,6 +50,16 @@ export default {
   },
   setup() {
     const { currentUser } = useAuth()
+
+    // Dark mode: read persisted preference on boot
+    const isDark = ref(localStorage.getItem('darkMode') === 'true')
+    if (isDark.value) document.body.classList.add('dark')
+
+    const toggleDark = () => {
+      isDark.value = !isDark.value
+      document.body.classList.toggle('dark', isDark.value)
+      localStorage.setItem('darkMode', String(isDark.value))
+    }
 
     // Collapse sidebar automatically on narrow screens (< 1024px)
     const narrowMq = window.matchMedia('(max-width: 1023px)')
@@ -119,6 +131,8 @@ export default {
 
     return {
       sidebarCollapsed,
+      isDark,
+      toggleDark,
       showProfileDetails,
       showTasks,
       tasks,
@@ -352,4 +366,39 @@ tbody tr:hover {
   margin: 1rem 0;
   font-size: 0.938rem;
 }
+
+/* ── Dark mode ── */
+body.dark {
+  --sidebar-bg:          #1e293b;
+  --sidebar-border:      1px solid #334155;
+  --sidebar-text:        #94a3b8;
+  --sidebar-text-strong: #f1f5f9;
+  --sidebar-hover-bg:    #334155;
+  --sidebar-active-bg:   #334155;
+  --sidebar-active-text: #f1f5f9;
+  --content-bg:          #0f172a;
+  --card-bg:             #1e293b;
+  --card-shadow:         0 1px 3px rgba(0,0,0,0.3);
+  --text-primary:        #f1f5f9;
+  --text-secondary:      #94a3b8;
+  --border:              #334155;
+}
+body.dark {
+  background: var(--content-bg);
+  color: var(--text-primary);
+}
+
+body.dark .card,
+body.dark .stat-card { background: var(--card-bg); border-color: var(--border); }
+body.dark table { color: var(--text-primary); }
+body.dark thead { background: #1e293b; border-color: var(--border); }
+body.dark td { border-color: #1e293b; color: var(--text-secondary); }
+body.dark tbody tr:hover { background: #1e293b; }
+body.dark .card-header { border-color: var(--border); }
+body.dark .card-title { color: var(--text-primary); }
+body.dark .page-header h2 { color: var(--text-primary); }
+body.dark .badge.success { background: #064e3b; color: #6ee7b7; }
+body.dark .badge.warning { background: #451a03; color: #fcd34d; }
+body.dark .badge.danger  { background: #450a0a; color: #fca5a5; }
+body.dark .badge.info    { background: #1e3a5f; color: #93c5fd; }
 </style>
